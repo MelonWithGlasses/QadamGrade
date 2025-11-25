@@ -22,7 +22,7 @@ QadamGrade - AI-powered homework evaluation application built with Flutter.
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/MelonWithGlasses/QadamGrade
 cd qadamgrade
 ```
 
