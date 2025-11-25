@@ -1,0 +1,44 @@
+name: qadamgrade
+description: QadamGrade - Приложение для оценки домашних заданий с помощью ML и ИИ.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  image_cropper: ^8.0.0
+  image_painter: ^0.7.0
+  # path_provider удален отсюда, так как он есть ниже
+
+  # Interface and Camera
+  image_picker: ^1.0.7
+  flutter_markdown: ^0.7.3
+  
+  # Typography
+  google_fonts: ^6.2.1
+  
+  # API
+  http: ^1.2.1
+  
+  # Local storage (DB)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.2
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.9
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env

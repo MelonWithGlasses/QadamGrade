@@ -1,0 +1,23 @@
+План модернизации UI QadamGrade для FlutterЭтот план адаптирован под виджеты и структуру Flutter. Мы уходим от стандартного "Material 2" вида к современному стилю.1. Решаем проблему "Тесноты" (Spacing & Padding)В Flutter проблема "прилипания" текста к краям решается через Padding и SizedBox.Глобальный отступ: Оберните всё содержимое Scaffold -> body в SingleChildScrollView (чтобы на маленьких экранах не было ошибок переполнения) и добавьте Padding.Код: Padding(padding: EdgeInsets.all(20.0), child: ...)Внутри карточек: Сейчас у вас, вероятно, padding: EdgeInsets.all(8.0).Решение: Увеличьте до EdgeInsets.all(24.0). Это даст тот самый "воздух".2. Современные Карточки (Cards)Вместо стандартного виджета Card лучше использовать Container с BoxDecoration, чтобы иметь полный контроль над тенями и границами.Скругление: Используйте borderRadius: BorderRadius.circular(24.0). Это тренд (Squircle / Superellipse).Тень: Стандартная тень Flutter (elevation) часто выглядит грязной. Используйте BoxShadow с цветом.Код:boxShadow: [
+  BoxShadow(
+    color: Colors.black.withOpacity(0.05), // Очень прозрачная тень
+    blurRadius: 20,
+    offset: Offset(0, 4),
+  ),
+]
+Граница: Тонкая рамка border: Border.all(color: Colors.grey.shade200).3. Поля ввода (TextField)Ваши текущие поля имеют жесткую черную рамку. Сделаем их мягче.Убираем рамку: В InputDecoration установите border: OutlineInputBorder(borderSide: BorderSide.none).Фон: Добавьте заливку filled: true и цвет fillColor: Color(0xFFF8FAFC) (светло-серый/голубоватый).Скругление поля: borderRadius: BorderRadius.circular(16.0).4. Кнопка "Оценить ИИ" (Градиент)Это главный элемент. Во Flutter стандартный ElevatedButton не поддерживает градиент напрямую. Нужно обернуть кнопку в Container (или Ink + InkWell).Градиент:decoration: BoxDecoration(
+  gradient: LinearGradient(
+    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)], // Blue to Violet
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  ),
+  borderRadius: BorderRadius.circular(30),
+   boxShadow: [
+    BoxShadow(
+      color: Color(0xFF4F46E5).withOpacity(0.4), // Цветная тень под кнопкой
+      blurRadius: 12,
+      offset: Offset(0, 6),
+    ),
+  ],
+)
+Иконка: Используйте векторную иконку Icons.auto_awesome или пакет lucide_icons. Никаких картинок PNG!5. Типографика (Шрифты)Стандартный шрифт Android (Roboto) выглядит скучновато для такого приложения.Пакет: Добавьте в pubspec.yaml пакет google_fonts.Выбор: Используйте GoogleFonts.nunito() или GoogleFonts.inter(). Nunito более округлый и подходит для школы.Применение: Задайте его в ThemeData вашего MaterialApp, чтобы он применился ко всему приложению сразу.6. Результат проверки (RichText)Вместо того чтобы выдавать результат одной строкой текста, используйте:RichText (или Text.rich) для выделения жирным внутри предложения.Row с иконкой и текстом для списков буллитов.Отдельный Container (Badge) для оценки "10/10".

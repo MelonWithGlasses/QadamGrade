@@ -1,0 +1,55 @@
+Спецификация Дизайна: QadamGrade "Digital Kazakhstan"Этот документ является единственным источником правды (Single Source of Truth) для создания интерфейса приложения.В основе лежит концепция "Vortex Transition" — бесшовный переход от анализа к результату через расширение солнца.1. Библиотека Ассетов (Assets Library)ВАЖНО: Не используйте внешние изображения. Все иконки должны быть inline SVG для максимальной четкости и производительности.1.1. Солнце Казахстана (KazakhSun)Используется как главный элемент загрузки и как фон для результата.Стиль: Диск с 32 лучами в форме зерен (как на флаге).Цвет: #FFC629 (Sun Gold).export const KazakhSun = ({ className }) => (
+  <svg viewBox="0 0 200 200" fill="currentColor" className={className}>
+    <circle cx="100" cy="100" r="50" />
+    {[...Array(32)].map((_, i) => (
+      <g key={i} transform={`rotate(${i * (360 / 32)} 100 100)`}>
+        <path d="M100 40 Q 108 30, 100 10 Q 92 30, 100 40" /> 
+      </g>
+    ))}
+  </svg>
+);
+1.2. Национальный Орнамент (OrnamentIcon)Используется как водяной знак (watermark) в углах экрана.Стиль: "Қошқар мүйіз" (Бараньи рога).Прозрачность: Строго opacity-5 (5%).export const OrnamentIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="currentColor" className={className}>
+    <path d="M30 50 C 30 20, 70 20, 70 50 C 70 80, 30 80, 30 50 Z M 20 50 C 20 90, 80 90, 80 50 C 80 10, 20 10, 20 50 Z" opacity="0.5" />
+    <path d="M10 50 C 10 100, 90 100, 90 50 C 90 0, 10 0, 10 50 Z" opacity="0.3" />
+  </svg>
+);
+2. Анимация "Солнечный Водоворот" (Animation Choreography)Мы используем State Machine из 5 стадий. Не используйте булевые флаги (isLoading).2.1. Переменная состоянияconst [stage, setStage] = useState('idle');2.2. Таблица переходов (State Table)СтадияОписаниеРодитель (Контейнер)Ребенок (Солнце)ЭффектidleОжиданиеСкрытscale-0Солнца нетanalyzingАнализ (3 сек)animate-spinscale-100, translate-y-[-20]Вращение по орбите (Солнце летает вокруг центра)centeringСтягивание (0.8 сек)animate-spinscale-75, translate-y-0Спираль: Солнце плавно падает в центр вращенияexpandingВзрыв (1 сек)Без вращенияscale-[200]Солнце увеличивается, заливая экран желтымresultФиналБез вращенияscale-[200]Солнце служит желтым фоном для экрана результата2.3. Логика CSS-трансформацийИспользуйте эту функцию для вычисления классов Солнца:const getSunTransform = () => {
+  switch (stage) {
+    case 'idle': return 'scale-0 translate-y-20 opacity-0';
+    case 'analyzing': return '-translate-y-20 scale-100 opacity-100'; // Смещение создает орбиту
+    case 'centering': return 'translate-y-0 scale-75 opacity-100 duration-[800ms] ease-in-out'; // Убираем смещение -> летит в центр
+    case 'expanding': return 'translate-y-0 scale-[200] opacity-100 duration-[1000ms] ease-in-out'; // Масштабируем до перекрытия экрана
+    case 'result': return 'translate-y-0 scale-[200] opacity-100';
+    default: return 'scale-0';
+  }
+};
+3. Архитектура Слоев (Z-Index Strategy)Для эффекта бесшовности элементы должны перекрывать друг друга в строгом порядке.Layer 0 (z-0): Глобальный ФонЦвет: bg-slate-900.Контент: Градиентные пятна (Blur) + OrnamentIcon.Поведение: Исчезает (opacity-0) при стадии result.Layer 1 (z-20): Интерфейс Ввода (Input UI)Контент: Карточки заданий, кнопки.Поведение: При начале анализа (stage !== 'idle') улетает вниз и исчезает (opacity-0 translate-y-20).Layer 2 (z-30): Анимационное Ядро (Vortex)Позиция: fixed inset-0.Контент: Вращающийся контейнер с KazakhSun.Важно: Этот слой перекрывает Input UI, но находится ПОД Result UI.Layer 3 (z-40): Интерфейс Результата (Result UI)Контент: Оценка, текст, кнопки "Поделиться".Поведение: Появляется (opacity-100) только на стадии result.Фон: Прозрачный, так как визуальным фоном служит раздутое Солнце с Layer 2.4. Стилизация (Design Tokens)Цветовая ПалитраPrimary Blue: #00B5E2 (Turquoise). Используйте градиент from-[#00B5E2] to-[#0088AA].Accent Gold: #FFC629 (Sun). Используйте для солнца, иконок успеха и важных кнопок.Dark Base: #0F172A (Slate 900). Основной фон приложения.Glassmorphism (Стекло)Для карточек используйте следующую комбинацию классов Tailwind:bg-[rgba(0,181,226,0.05)] backdrop-blur-xl border border-white/10 shadow-2xlТипографикаЗаголовки: font-bold tracking-tight.Текст результата: uppercase tracking-widest (для эффекта премиальности).5. Пример Структуры Компонентаreturn (
+  <div className="relative min-h-screen bg-slate-900 overflow-hidden text-white font-sans">
+    
+    {/* 1. Глобальный фон (исчезает в конце) */}
+    <div className={`fixed inset-0 transition-opacity duration-1000 ${stage === 'result' ? 'opacity-0' : 'opacity-100'}`}>
+       <OrnamentIcon />
+    </div>
+
+    {/* 2. Анимация Солнца (Vortex) */}
+    <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
+       <div className={`transition-all ${(stage === 'analyzing' || stage === 'centering') ? 'animate-spin-fast' : ''}`}>
+          <div className={`transition-all ${getSunTransform()}`}>
+             <KazakhSun className="text-[#FFC629]" />
+          </div>
+       </div>
+    </div>
+
+    {/* 3. Экран Ввода (исчезает при старте) */}
+    <div className={`relative z-20 transition-all ${stage !== 'idle' ? 'opacity-0 translate-y-10' : 'opacity-100'}`}>
+       {/* Header, Inputs, Buttons */}
+    </div>
+
+    {/* 4. Экран Результата (появляется в конце) */}
+    <div className={`fixed inset-0 z-40 transition-all ${stage === 'result' ? 'opacity-100' : 'opacity-0'}`}>
+       {/* Score, Details, Actions */}
+    </div>
+
+  </div>
+);
