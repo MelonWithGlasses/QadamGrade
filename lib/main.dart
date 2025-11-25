@@ -12,9 +12,9 @@ import 'local_history_service.dart';
 import 'image_editor_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// --- Custom Painters (Assets) ---
+// Custom Painters
 
-// 1. ИСПРАВЛЕННОЕ Солнце Казахстана
+// Kazakh sun symbol
 class KazakhSunPainter extends CustomPainter {
   final Color color;
   KazakhSunPainter({required this.color});
@@ -24,29 +24,24 @@ class KazakhSunPainter extends CustomPainter {
     final paint = Paint()..color = color..style = PaintingStyle.fill;
     final center = Offset(size.width / 2, size.height / 2);
     
-    // Уменьшаем радиус диска, чтобы лучи были длиннее
     final diskRadius = size.width * 0.22; 
     final rayLength = size.width * 0.22;
-    final rayStart = diskRadius + (size.width * 0.02); // Отступ от диска
+    final rayStart = diskRadius + (size.width * 0.02);
 
-    // 1. Центральный диск
     canvas.drawCircle(center, diskRadius, paint);
 
-    // 2. Лучи-зерна (32 шт)
+    // 32 rays
     for (int i = 0; i < 32; i++) {
       canvas.save();
       canvas.translate(center.dx, center.dy);
       canvas.rotate(i * (2 * math.pi / 32));
       
       final rayPath = Path();
-      // Рисуем "зерно": начинается узким, расширяется, сужается к концу
-      rayPath.moveTo(0, -rayStart); 
-      // Левая дуга
+      rayPath.moveTo(0, -rayStart);
       rayPath.quadraticBezierTo(
         -size.width * 0.03, -rayStart - (rayLength * 0.5), 
         0, -rayStart - rayLength
       );
-      // Правая дуга (возврат)
       rayPath.quadraticBezierTo(
         size.width * 0.03, -rayStart - (rayLength * 0.5), 
         0, -rayStart
@@ -70,15 +65,13 @@ class OrnamentPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2; // Тонкие линии для минимализма
+      ..strokeWidth = 2;
       
     final path = Path();
-    // Стилизованные рога
     path.moveTo(size.width * 0.2, size.height * 0.6);
     path.quadraticBezierTo(size.width * 0.2, size.height * 0.2, size.width * 0.5, size.height * 0.2);
     path.quadraticBezierTo(size.width * 0.8, size.height * 0.2, size.width * 0.8, size.height * 0.6);
     
-    // Внутренние завитки
     path.moveTo(size.width * 0.35, size.height * 0.6);
     path.quadraticBezierTo(size.width * 0.35, size.height * 0.4, size.width * 0.5, size.height * 0.4);
     path.quadraticBezierTo(size.width * 0.65, size.height * 0.4, size.width * 0.65, size.height * 0.6);
@@ -171,8 +164,6 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
     super.dispose();
   }
 
-  // --- LOGIC ---
-
   Future<void> _handleAnalyze() async {
     bool hasTask = (_taskInputType == 'text' && _taskText.isNotEmpty) || (_taskInputType == 'photo' && _taskImages.isNotEmpty);
     bool hasAnswer = (_answerInputType == 'text' && _studentAnswerText.isNotEmpty) || (_answerInputType == 'photo' && _studentAnswerImages.isNotEmpty);
@@ -202,7 +193,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
       );
 
       int score = _extractScore(result);
-      await Future.delayed(const Duration(seconds: 2)); // UX pause
+      await Future.delayed(const Duration(seconds: 2));
 
       setState(() {
         _currentScore = score;
@@ -336,7 +327,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                         : 0,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 800),
-                      curve: Curves.easeInOutCubic, // Более плавная кривая
+                      curve: Curves.easeInOutCubic,
                       transform: _getSunTransform(),
                       transformAlignment: Alignment.center, 
                       child: Container(
@@ -351,7 +342,6 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                                 ] 
                               : [],
                         ), 
-                        // Рисуем чистое векторное солнце без контейнера и теней (для минимализма)
                         child: Center(
                           child: (_stage == 'result' && _currentScore < 10) 
                               ? Text('$_currentScore', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)))

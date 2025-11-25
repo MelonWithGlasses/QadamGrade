@@ -27,7 +27,6 @@ class OpenRouterService {
         }
       ];
 
-      // Add task content
       if (taskType == 'image') {
         List<String> images = (taskInput is List) ? List<String>.from(taskInput) : [taskInput as String];
         for (var imagePath in images) {
@@ -50,7 +49,6 @@ class OpenRouterService {
         });
       }
 
-      // Add student answer content
       if (studentAnswerType == 'image') {
         List<String> images = (studentAnswerInput is List) ? List<String>.from(studentAnswerInput) : [studentAnswerInput as String];
         for (var imagePath in images) {
@@ -73,7 +71,6 @@ class OpenRouterService {
         });
       }
 
-      // Try different URLs with retry mechanism
       http.Response? response;
       String? lastError;
       
@@ -82,7 +79,6 @@ class OpenRouterService {
           try {
             print('Trying URL: ${baseUrls[urlIndex]} (attempt ${retry + 1})');
             
-            // Add delay for retries
             if (retry > 0) {
               await Future.delayed(Duration(seconds: retry * 2));
             }
@@ -113,7 +109,7 @@ class OpenRouterService {
             
             if (response.statusCode == 200) {
               print('Success with URL: ${baseUrls[urlIndex]}');
-              break; // Success, exit retry loop
+              break;
             } else {
               lastError = 'HTTP ${response.statusCode}: ${response.body}';
             }
@@ -121,18 +117,15 @@ class OpenRouterService {
             lastError = e.toString();
             print('URL ${baseUrls[urlIndex]} attempt ${retry + 1} failed: $e');
             
-            // If it's a DNS error, don't retry the same URL
-            if (e.toString().contains('No address associated with hostname') ||
-                e.toString().contains('Failed host lookup')) {
-              break; // Skip to next URL
+              break;
             }
             
-            if (retry < 2) continue; // Retry same URL
+            if (retry < 2) continue;
           }
         }
         
         if (response != null && response.statusCode == 200) {
-          break; // Success, exit URL loop
+          break;
         }
       }
       
@@ -146,9 +139,8 @@ class OpenRouterService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print('API Response: ${response.body}'); // Debug output
+        print('API Response: ${response.body}');
         
-        // Handle different response formats
         if (data['choices'] != null && 
             data['choices'].isNotEmpty && 
             data['choices'][0]['message'] != null &&
