@@ -1,18 +1,47 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 void main() async {
   print('🧪 Тестирование AI-сервиса QadamGrade...\n');
   
-  final apiKey = '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';
-  final baseUrls = [
+  String apiKey = '';
+  
+  // Load .env file manually
+  try {
+    final envFile = File('.env');
+    if (await envFile.exists()) {
+      final lines = await envFile.readAsLines();
+      for (var line in lines) {
+        if (line.trim().startsWith('OPENROUTER_API_KEY=')) {
+          apiKey = line.split('=')[1].trim();
+          print('✅ Found API key in .env');
+          break;
+        }
+      }
+    } else {
+      print('❌ .env file not found');
+    }
+  } catch (e) {
+    print('❌ Error reading .env file: $e');
+  }
+
+  if (apiKey.isEmpty) {
+    print('❌ API Key not found in .env!');
+    // Fallback for testing if .env fails (optional, but requested to use .env)
+    return;
+  }
+
+  const baseUrls = [
     'https://openrouter.ai/api/v1/chat/completions',
     'https://api.openrouter.ai/v1/chat/completions',
   ];
 
   // Тестовые данные
-  final testTask = "Реши уравнение: 2x + 5 = 15";
-  final testAnswer = "2x + 5 = 15\n2x = 15 - 5\n2x = 10\nx = 5";
+  const testTask = "Реши уравнение: 2x + 5 = 15";
+  const testAnswer = "2x + 5 = 15\n2x = 15 - 5\n2x = 10\nx = 5";
 
   print('📝 Задание: $testTask');
   print('📝 Ответ ученика: $testAnswer\n');
@@ -67,7 +96,7 @@ void main() async {
               }
             ],
           }),
-        ).timeout(Duration(seconds: 45));
+        ).timeout(const Duration(seconds: 45));
         
         print('📊 Статус: ${response.statusCode}');
         

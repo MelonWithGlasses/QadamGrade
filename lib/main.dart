@@ -1,15 +1,16 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'dart:io';
-import 'dart:ui';
+
 import 'dart:async';
 import 'image_scanner_service.dart';
 import 'openrouter_service.dart';
 import 'local_history_service.dart';
-import 'image_editor_screen.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Custom Painters
@@ -229,6 +230,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
     } catch (e) {
       setState(() => _stage = 'idle');
       _vortexController.stop();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red));
     }
   }
@@ -259,8 +261,11 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
       final path = await _imageScannerService.scanImage();
       if (path.isEmpty) return;
       setState(() {
-        if (isTask) _taskImages = [path];
-        else _studentAnswerImages = [path];
+        if (isTask) {
+          _taskImages = [path];
+        } else {
+          _studentAnswerImages = [path];
+        }
       });
     } catch (e) {
       debugPrint('Error: $e');
@@ -271,26 +276,28 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
     final matrix = Matrix4.identity();
     switch (_stage) {
       case 'idle':
-        matrix.scale(0.0);
+        matrix.scale(0.0, 0.0, 0.0);
         break;
       case 'analyzing':
-        matrix.scale(1.0);
-        matrix.translate(0.0, -80.0); // Орбита
+        // Center and rotate in place (rotation handled by AnimatedBuilder)
+        matrix.scale(1.2, 1.2, 1.2); 
+        // No translation needed, it should be in center
         break;
       case 'centering':
-        matrix.scale(0.8);
-        matrix.translate(0.0, 0.0); // Центр
+        matrix.scale(1.0, 1.0, 1.0);
         break;
       case 'expanding':
-        matrix.scale(30.0); // Взрыв
+        // Explode animation for correct answer
+        matrix.scale(40.0, 40.0, 40.0); 
         break;
       case 'settling':
       case 'result':
-        if (_currentScore == 10) {
-           matrix.scale(30.0);
+        if (_currentScore >= 8) { // Assuming 8-10 is "correct" enough for golden explosion
+           matrix.scale(40.0, 40.0, 40.0);
         } else {
-           matrix.scale(0.6);
-           matrix.translate(0.0, -280.0); // Бейдж
+           // Fall animation for incorrect/low score
+           matrix.scale(0.6, 0.6, 0.6);
+           matrix.translate(0.0, 1000.0, 0.0); // Fall down off screen
         }
         break;
     }
@@ -305,15 +312,13 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
     
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: isGoldenState ? accentGold : const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF0F172A), // Always dark blue background (Flag color)
       body: Stack(
         children: [
           // 1. CLEAN BACKGROUND (No Blurs, Minimalist)
-          if (!isGoldenState) ...[
-            // Орнамент очень тонкий и еле заметный
-            Positioned(top: -20, right: -20, child: Opacity(opacity: 0.03, child: _buildOrnament(400))),
-            Positioned(bottom: -20, left: -20, child: Opacity(opacity: 0.03, child: _buildOrnament(400))),
-          ],
+          // Орнамент очень тонкий и еле заметный
+          Positioned(top: -20, right: -20, child: Opacity(opacity: 0.03, child: _buildOrnament(400))),
+          Positioned(bottom: -20, left: -20, child: Opacity(opacity: 0.03, child: _buildOrnament(400))),
 
           // 2. ANIMATION CORE
           Positioned.fill(
@@ -337,18 +342,18 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                           shape: BoxShape.circle,
                           boxShadow: isGoldenState 
                               ? [
-                                  BoxShadow(color: accentGold.withOpacity(0.6), blurRadius: 40, spreadRadius: 10),
-                                  BoxShadow(color: accentGold.withOpacity(0.4), blurRadius: 80, spreadRadius: 20),
+                                  BoxShadow(color: accentGold.withValues(alpha: 0.8), blurRadius: 60, spreadRadius: 20),
+                                  BoxShadow(color: accentGold.withValues(alpha: 0.6), blurRadius: 100, spreadRadius: 40),
                                 ] 
                               : [],
                         ), 
                         child: Center(
-                          child: (_stage == 'result' && _currentScore < 10) 
-                              ? Text('$_currentScore', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)))
+                          child: (_stage == 'result' && _currentScore < 8) 
+                              ? Text('$_currentScore', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white))
                               : CustomPaint(
                                   size: const Size(100, 100), 
                                   painter: KazakhSunPainter(
-                                    color: isGoldenState ? const Color(0xFF0F172A).withOpacity(0.2) : accentGold
+                                    color: accentGold // Always Gold
                                   )
                                 ),
                         ),
@@ -381,7 +386,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('QadamGrade', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                            Text('AI Assistant', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5))),
+                            Text('AI Assistant', style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5))),
                           ],
                         ),
                         Container(
@@ -493,7 +498,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                         child: Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A).withOpacity(0.05), // Еле заметная подложка
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.05), // Еле заметная подложка
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: SingleChildScrollView(
@@ -614,7 +619,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
             color: const Color(0xFF1E293B), // Surface
             borderRadius: BorderRadius.circular(16),
             // Очень тонкая рамка вместо теней
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Column(
             children: [
@@ -639,7 +644,7 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
                     width: double.infinity,
                     alignment: Alignment.center,
                     child: images.isEmpty 
-                        ? Icon(Icons.add_a_photo, color: activeColor.withOpacity(0.5), size: 32)
+                        ? Icon(Icons.add_a_photo, color: activeColor.withValues(alpha: 0.5), size: 32)
                         : ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.file(File(images.first), fit: BoxFit.cover, width: double.infinity)),
                   ),
                 ),
@@ -647,12 +652,12 @@ class _HomeworkCheckerScreenState extends State<HomeworkCheckerScreen> with Tick
               // Minimal Toggle at bottom
               Container(
                 height: 1, 
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
               Row(
                 children: [
                   _buildFlatToggle('Текст', inputType == 'text', activeColor, () => onTypeChange('text')),
-                  Container(width: 1, height: 20, color: Colors.white.withOpacity(0.05)),
+                  Container(width: 1, height: 20, color: Colors.white.withValues(alpha: 0.05)),
                   _buildFlatToggle('Фото', inputType == 'photo', activeColor, () => onTypeChange('photo')),
                 ],
               ),

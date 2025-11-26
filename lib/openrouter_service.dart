@@ -77,7 +77,7 @@ class OpenRouterService {
       for (int urlIndex = 0; urlIndex < baseUrls.length; urlIndex++) {
         for (int retry = 0; retry < 3; retry++) {
           try {
-            print('Trying URL: ${baseUrls[urlIndex]} (attempt ${retry + 1})');
+            // debugPrint('Trying URL: ${baseUrls[urlIndex]} (attempt ${retry + 1})');
             
             if (retry > 0) {
               await Future.delayed(Duration(seconds: retry * 2));
@@ -108,19 +108,18 @@ class OpenRouterService {
             ).timeout(timeout);
             
             if (response.statusCode == 200) {
-              print('Success with URL: ${baseUrls[urlIndex]}');
+              // debugPrint('Success with URL: ${baseUrls[urlIndex]}');
               break;
             } else {
               lastError = 'HTTP ${response.statusCode}: ${response.body}';
             }
           } catch (e) {
             lastError = e.toString();
-            print('URL ${baseUrls[urlIndex]} attempt ${retry + 1} failed: $e');
-            
-              break;
-            }
-            
-            if (retry < 2) continue;
+            // debugPrint('URL ${baseUrls[urlIndex]} attempt ${retry + 1} failed: $e');
+          }
+          
+          if (response != null && response.statusCode == 200) {
+            break;
           }
         }
         
@@ -139,7 +138,7 @@ class OpenRouterService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print('API Response: ${response.body}');
+        // debugPrint('API Response: ${response.body}');
         
         if (data['choices'] != null && 
             data['choices'].isNotEmpty && 
